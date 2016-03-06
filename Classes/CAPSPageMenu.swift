@@ -82,6 +82,8 @@ public enum CAPSPageMenuOption {
     case ScrollAnimationDurationOnMenuItemTap(Int)
     case CenterMenuItems(Bool)
     case HideTopMenuBar(Bool)
+    case MenuHShift(CGFloat)
+
 }
 
 public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate {
@@ -95,6 +97,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     var menuItemWidths : [CGFloat] = []
     
     public var menuHeight : CGFloat = 34.0
+    public var menuHShift : CGFloat = 0.0
     public var menuMargin : CGFloat = 15.0
     public var menuItemWidth : CGFloat = 111.0
     public var selectionIndicatorHeight : CGFloat = 3.0
@@ -223,6 +226,8 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                     centerMenuItems = value
                 case let .HideTopMenuBar(value):
                     hideTopMenuBar = value
+                case let .MenuHShift(value):
+                    menuHShift = value
                 }
             }
             
@@ -282,9 +287,11 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         
         let menuScrollView_constraint_H:Array = NSLayoutConstraint.constraintsWithVisualFormat("H:|[menuScrollView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
         let menuScrollView_constraint_V:Array = NSLayoutConstraint.constraintsWithVisualFormat("V:[menuScrollView(\(menuHeight))]", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
+        let menuScrollView_constraint_Top:Array = NSLayoutConstraint.constraintsWithVisualFormat("V:|-(\(menuHShift))-[menuScrollView]", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
         
         self.view.addConstraints(menuScrollView_constraint_H)
         self.view.addConstraints(menuScrollView_constraint_V)
+        self.view.addConstraints(menuScrollView_constraint_Top)
         
         // Add hairline to menu scroll view
         if addBottomMenuHairline {
@@ -859,7 +866,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         
         newVC.willMoveToParentViewController(self)
         
-        newVC.view.frame = CGRectMake(self.view.frame.width * CGFloat(index), menuHeight, self.view.frame.width, self.view.frame.height - menuHeight)
+        newVC.view.frame = CGRectMake(self.view.frame.width * CGFloat(index), 0.0, self.view.frame.width, self.view.frame.height)
         
         self.addChildViewController(newVC)
         self.controllerScrollView.addSubview(newVC.view)
