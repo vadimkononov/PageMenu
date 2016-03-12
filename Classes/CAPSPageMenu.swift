@@ -530,10 +530,13 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     
     // Returns the size of the left and right margins that are neccessary to layout the menuItems in the center.
     private func getMarginForMenuItemWidthBasedOnTitleTextWidthAndCenterMenuItems() -> CGFloat {
-        let menuItemsTotalWidth = menuScrollView.contentSize.width - menuMargin * 2
-        let leadingAndTrailingMargin = (CGRectGetWidth(self.view.bounds) - menuItemsTotalWidth) / 2
-        
-        return leadingAndTrailingMargin
+        if menuScrollView.contentSize.width < CGRectGetWidth(self.view.bounds) {
+                let menuItemsTotalWidth = menuScrollView.contentSize.width - menuMargin * 2
+            let leadingAndTrailingMargin = (CGRectGetWidth(self.view.bounds) - menuItemsTotalWidth) / 2
+            
+            return leadingAndTrailingMargin
+        }
+        return menuMargin
     }
     
     
