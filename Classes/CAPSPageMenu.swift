@@ -133,8 +133,8 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     public var hideTopMenuBar : Bool = false
     
     var currentOrientationIsPortrait : Bool = true
-    var pageIndexForOrientationChange : Int = 0
     var didLayoutSubviewsAfterRotation : Bool = false
+    var didLayoutSubviewsAfterTrait : Bool = false
     var didScrollAlready : Bool = false
     
     var lastControllerScrollViewContentOffset : CGFloat = 0.0
@@ -256,6 +256,17 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
 	public override func shouldAutomaticallyForwardRotationMethods() -> Bool {
 		return true
 	}
+    
+    public override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "willEnterForeground:", name: UIApplicationWillEnterForegroundNotification, object: nil)
+        
+    }
+    
+    public override func viewDidDisappear(animated: Bool) {
+        super.viewDidDisappear(animated)
+        NSNotificationCenter.defaultCenter().removeObserver(self)
+    }
 	
     // MARK: - UI Setup
     
@@ -625,7 +636,8 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                         let page : Int = Int((controllerScrollView.contentOffset.x + (0.5 * width)) / width)
                         
                         // Update page if changed
-                        if page != currentPageIndex {
+                        if page != currentPageIndex && !didLayoutSubviewsAfterTrait {
+ 
                             lastPageIndex = currentPageIndex
                             currentPageIndex = page
                             
@@ -870,7 +882,6 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         newVC.willMoveToParentViewController(self)
         
         newVC.view.frame = CGRectMake(self.view.frame.width * CGFloat(index), 0.0, self.view.frame.width, self.view.frame.height)
-        
         self.addChildViewController(newVC)
         self.controllerScrollView.addSubview(newVC.view)
         newVC.didMoveToParentViewController(self)
@@ -886,18 +897,32 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     }
     
     
-    // MARK: - Orientation Change
+    // MARK: - Orientation Change & iPad Screen change
     
+    public override func traitCollectionDidChange(previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        print ("traitCollectionDidChange")
+        didLayoutSubviewsAfterTrait = true
+    }
+    
+    func willEnterForeground(notification: NSNotification) {
+        didLayoutSubviewsAfterTrait = true
+    }
+   
     override public func viewDidLayoutSubviews() {
-        // Configure controller scroll view content size
+        
         controllerScrollView.contentSize = CGSizeMake(self.view.frame.width * CGFloat(controllerArray.count), self.view.frame.height - menuHeight)
         
         let oldCurrentOrientationIsPortrait : Bool = currentOrientationIsPortrait
         currentOrientationIsPortrait = UIApplication.sharedApplication().statusBarOrientation.isPortrait
         
-        if (oldCurrentOrientationIsPortrait && UIDevice.currentDevice().orientation.isLandscape) || (!oldCurrentOrientationIsPortrait && UIDevice.currentDevice().orientation.isPortrait) {
-            didLayoutSubviewsAfterRotation = true
+        if (oldCurrentOrientationIsPortrait && UIDevice.currentDevice().orientation.isLandscape) || (!oldCurrentOrientationIsPortrait && UIDevice.currentDevice().orientation.isPortrait) || didLayoutSubviewsAfterTrait {
+ 
+            if !didLayoutSubviewsAfterTrait {
+                didLayoutSubviewsAfterRotation = true
+            }
             
+
             //Resize menu items if using as segmented control
             if useMenuLikeSegmentedControl {
                 menuScrollView.contentSize = CGSizeMake(self.view.frame.width, menuHeight)
@@ -944,10 +969,16 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                     index++
                 }
             }
+
             
-            for view : UIView in controllerScrollView.subviews {
-                view.frame = CGRectMake(self.view.frame.width * CGFloat(currentPageIndex), 0, controllerScrollView.frame.width, self.view.frame.height)
+            for index in 0...controllerArray.count - 1 {
+                let vc = controllerArray[index]
+                vc.view.frame = CGRectMake(self.view.frame.width * CGFloat(index), 0, controllerScrollView.frame.width, self.view.frame.height)
             }
+
+//                for view : UIView in controllerScrollView.subviews {
+//                    view.frame = CGRectMake(self.view.frame.width * CGFloat(currentPageIndex), 0, controllerScrollView.frame.width, self.view.frame.height)
+//                }
             
             let xOffset : CGFloat = CGFloat(self.currentPageIndex) * controllerScrollView.frame.width
             controllerScrollView.setContentOffset(CGPoint(x: xOffset, y: controllerScrollView.contentOffset.y), animated: false)
@@ -959,6 +990,11 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                 offset.x = controllerScrollView.contentOffset.x * ratio
                 menuScrollView.setContentOffset(offset, animated: false)
             }
+            
+            if  didLayoutSubviewsAfterTrait{
+                didLayoutSubviewsAfterTrait = false
+            }
+
         }
         
         // Hsoi 2015-02-05 - Running on iOS 7.1 complained: "'NSInternalInconsistencyException', reason: 'Auto Layout
