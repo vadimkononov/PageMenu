@@ -260,6 +260,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     public override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "willEnterForeground:", name: UIApplicationWillEnterForegroundNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "didBecomeActive:", name: UIApplicationDidBecomeActiveNotification, object: nil)
         
     }
     
@@ -905,6 +906,9 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         didLayoutSubviewsAfterTrait = true
     }
     
+    func didBecomeActive(notification: NSNotification) {
+        didLayoutSubviewsAfterTrait = true
+    }
     func willEnterForeground(notification: NSNotification) {
         didLayoutSubviewsAfterTrait = true
     }
