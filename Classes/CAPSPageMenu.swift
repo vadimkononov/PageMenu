@@ -24,6 +24,7 @@ import UIKit
     
     optional func willMoveToPage(controller: UIViewController, index: Int)
     optional func didMoveToPage(controller: UIViewController, index: Int)
+    optional func didChangeLayout()
 }
 
 class MenuItemView: UIView {
@@ -261,6 +262,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         super.viewWillAppear(animated)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "willEnterForeground:", name: UIApplicationWillEnterForegroundNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "didBecomeActive:", name: UIApplicationDidBecomeActiveNotification, object: nil)
+
         
     }
     
@@ -902,13 +904,13 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     
     public override func traitCollectionDidChange(previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        print ("traitCollectionDidChange")
         didLayoutSubviewsAfterTrait = true
     }
-    
+
     func didBecomeActive(notification: NSNotification) {
         didLayoutSubviewsAfterTrait = true
     }
+    
     func willEnterForeground(notification: NSNotification) {
         didLayoutSubviewsAfterTrait = true
     }
@@ -926,6 +928,9 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                 didLayoutSubviewsAfterRotation = true
             }
             
+            if didLayoutSubviewsAfterTrait || didLayoutSubviewsAfterRotation {
+                delegate?.didChangeLayout!()
+            }
 
             //Resize menu items if using as segmented control
             if useMenuLikeSegmentedControl {
