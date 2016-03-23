@@ -84,7 +84,7 @@ public enum CAPSPageMenuOption {
     case CenterMenuItems(Bool)
     case HideTopMenuBar(Bool)
     case MenuHShift(CGFloat)
-    
+    case ControllerScrollViewHShift(CGFloat)
 }
 
 public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate {
@@ -99,6 +99,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     
     public var menuHeight : CGFloat = 34.0
     public var menuHShift : CGFloat = 0.0
+    public var controllerScrollViewHShift : CGFloat = 0.0
     public var menuMargin : CGFloat = 15.0
     public var menuItemWidth : CGFloat = 111.0
     public var selectionIndicatorHeight : CGFloat = 3.0
@@ -237,6 +238,8 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                     hideTopMenuBar = value
                 case let .MenuHShift(value):
                     menuHShift = value
+                case let .ControllerScrollViewHShift(value):
+                    controllerScrollViewHShift = value
                 }
             }
             
@@ -277,20 +280,16 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         controllerScrollView.alwaysBounceHorizontal = enableHorizontalBounce
         controllerScrollView.bounces = enableHorizontalBounce
         
-        controllerScrollView.frame = CGRectMake(0.0, menuHeight, self.view.frame.width, self.view.frame.height)
-        
         self.view.addSubview(controllerScrollView)
         
         let controllerScrollView_constraint_H:Array = NSLayoutConstraint.constraintsWithVisualFormat("H:|[controllerScrollView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
-        let controllerScrollView_constraint_V:Array = NSLayoutConstraint.constraintsWithVisualFormat("V:|[controllerScrollView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
+        let controllerScrollView_constraint_V:Array = NSLayoutConstraint.constraintsWithVisualFormat("V:|-(\(controllerScrollViewHShift))-[controllerScrollView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
         
         self.view.addConstraints(controllerScrollView_constraint_H)
         self.view.addConstraints(controllerScrollView_constraint_V)
         
         // Set up menu scroll view
         menuScrollView.translatesAutoresizingMaskIntoConstraints = false
-        
-        menuScrollView.frame = CGRectMake(0.0, 0.0, self.view.frame.width, menuHeight)
         
         self.view.addSubview(menuScrollView)
         
@@ -980,10 +979,6 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                 vc.view.frame = CGRectMake(self.view.frame.width * CGFloat(index), 0, controllerScrollView.frame.width, self.view.frame.height)
             }
             
-            //                for view : UIView in controllerScrollView.subviews {
-            //                    view.frame = CGRectMake(self.view.frame.width * CGFloat(currentPageIndex), 0, controllerScrollView.frame.width, self.view.frame.height)
-            //                }
-            
             let xOffset : CGFloat = CGFloat(self.currentPageIndex) * controllerScrollView.frame.width
             controllerScrollView.setContentOffset(CGPoint(x: xOffset, y: controllerScrollView.contentOffset.y), animated: false)
             
@@ -1009,6 +1004,9 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         //
         // Given the SO answer and caveats presented there, we'll call layoutIfNeeded() instead.
         self.view.layoutIfNeeded()
+        
+        print("controllerScrollView: \(controllerScrollView)")
+        
     }
     
     
