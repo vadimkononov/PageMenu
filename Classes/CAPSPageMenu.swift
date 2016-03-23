@@ -27,11 +27,11 @@ import UIKit
     optional func didChangeLayout()
 }
 
-class MenuItemView: UIView {
+public class MenuItemView: UIView {
     // MARK: - Menu item view
     
-    var titleLabel : UILabel?
-    var menuItemSeparator : UIView?
+    public var titleLabel : UILabel?
+    public var menuItemSeparator : UIView?
     
     func setUpMenuItemView(menuItemWidth: CGFloat, menuScrollViewHeight: CGFloat, indicatorHeight: CGFloat, separatorPercentageHeight: CGFloat, separatorWidth: CGFloat, separatorRoundEdges: Bool, menuItemSeparatorColor: UIColor) {
         titleLabel = UILabel(frame: CGRectMake(0.0, 0.0, menuItemWidth, menuScrollViewHeight - indicatorHeight))
@@ -54,7 +54,10 @@ class MenuItemView: UIView {
             titleLabel!.text = text as String
             titleLabel!.numberOfLines = 0
             titleLabel!.sizeToFit()
-        }
+         }
+        
+        let size = titleLabel!.sizeThatFits(CGSize(width: CGFloat.max, height: CGFloat.max))
+        titleLabel!.frame = CGRectMake(0, 0, CGRectGetWidth(titleLabel!.frame), size.height)
     }
 }
 
@@ -85,6 +88,8 @@ public enum CAPSPageMenuOption {
     case HideTopMenuBar(Bool)
     case MenuHShift(CGFloat)
     case ControllerScrollViewHShift(CGFloat)
+    case CustomMenuViews([MenuItemView])
+
 }
 
 public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate {
@@ -95,6 +100,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     let controllerScrollView = UIScrollView()
     var controllerArray : [UIViewController] = []
     var menuItems : [MenuItemView] = []
+    var customMenuItems : [MenuItemView] = []
     var menuItemWidths : [CGFloat] = []
     
     public var menuHeight : CGFloat = 34.0
@@ -240,6 +246,8 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                     menuHShift = value
                 case let .ControllerScrollViewHShift(value):
                     controllerScrollViewHShift = value
+                case let .CustomMenuViews(value):
+                    customMenuItems = value
                 }
             }
             
@@ -279,7 +287,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         controllerScrollView.translatesAutoresizingMaskIntoConstraints = false
         controllerScrollView.alwaysBounceHorizontal = enableHorizontalBounce
         controllerScrollView.bounces = enableHorizontalBounce
-        
+                
         self.view.addSubview(controllerScrollView)
         
         let controllerScrollView_constraint_H:Array = NSLayoutConstraint.constraintsWithVisualFormat("H:|[controllerScrollView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
@@ -407,7 +415,9 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                 }
             }
             
-            let menuItemView : MenuItemView = MenuItemView(frame: menuItemFrame)
+            let menuItemView : MenuItemView =  Int(index) < customMenuItems.count ? customMenuItems[Int(index)] : MenuItemView(frame: menuItemFrame)
+            menuItemView.frame = menuItemFrame
+
             if useMenuLikeSegmentedControl {
                 //**************************拡張*************************************
                 if menuItemMargin > 0 {
@@ -434,9 +444,10 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
             
             // Set title depending on if controller has a title set
             if controller.title != nil {
-                menuItemView.titleLabel!.text = controller.title!
+                menuItemView.setTitleText(controller.title!)
             } else {
-                menuItemView.titleLabel!.text = "Menu \(Int(index) + 1)"
+                menuItemView.setTitleText("Menu \(Int(index) + 1)")
+//                menuItemView.titleLabel!.text = "Menu \(Int(index) + 1)"
             }
             
             // Add separator between menu items when using as segmented control
@@ -911,6 +922,11 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     
     override public func viewDidLayoutSubviews() {
         
+        for menuView in menuItems {
+            menuView.setNeedsLayout()
+            menuView.layoutIfNeeded()
+        }
+        
         controllerScrollView.contentSize = CGSizeMake(self.view.frame.width * CGFloat(controllerArray.count), self.view.frame.height - menuHeight)
         
         let oldCurrentOrientationIsPortrait : Bool = currentOrientationIsPortrait
@@ -1004,9 +1020,6 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         //
         // Given the SO answer and caveats presented there, we'll call layoutIfNeeded() instead.
         self.view.layoutIfNeeded()
-        
-        print("controllerScrollView: \(controllerScrollView)")
-        
     }
     
     
