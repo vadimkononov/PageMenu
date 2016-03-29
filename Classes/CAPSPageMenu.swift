@@ -54,7 +54,7 @@ public class MenuItemView: UIView {
             titleLabel!.text = text as String
             titleLabel!.numberOfLines = 0
             titleLabel!.sizeToFit()
-         }
+        }
         
         let size = titleLabel!.sizeThatFits(CGSize(width: CGFloat.max, height: CGFloat.max))
         titleLabel!.frame = CGRectMake(0, 0, CGRectGetWidth(titleLabel!.frame), size.height)
@@ -89,7 +89,7 @@ public enum CAPSPageMenuOption {
     case MenuHShift(CGFloat)
     case ControllerScrollViewHShift(CGFloat)
     case CustomMenuViews([MenuItemView])
-
+    
 }
 
 public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureRecognizerDelegate {
@@ -153,7 +153,14 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     
     var pagesAddedDictionary : [Int : Int] = [:]
     
-    public weak var delegate : CAPSPageMenuDelegate?
+    public weak var delegate : CAPSPageMenuDelegate? {
+        didSet {
+            // MARK: select first item
+            if controllerArray.count > 0 {
+                delegate?.willMoveToPage?(controllerArray.first!, index: currentPageIndex)
+            }
+        }
+    }
     
     var tapTimer : NSTimer?
     
@@ -166,12 +173,12 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     // MARK: - View life cycle
     
     /**
-    Initialize PageMenu with view controllers
-    
-    :param: viewControllers List of view controllers that must be subclasses of UIViewController
-    :param: frame Frame for page menu view
-    :param: options Dictionary holding any customization options user might want to set
-    */
+     Initialize PageMenu with view controllers
+     
+     :param: viewControllers List of view controllers that must be subclasses of UIViewController
+     :param: frame Frame for page menu view
+     :param: options Dictionary holding any customization options user might want to set
+     */
     public init(viewControllers: [UIViewController], frame: CGRect, options: [String: AnyObject]?) {
         super.init(nibName: nil, bundle: nil)
         
@@ -287,7 +294,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         controllerScrollView.translatesAutoresizingMaskIntoConstraints = false
         controllerScrollView.alwaysBounceHorizontal = enableHorizontalBounce
         controllerScrollView.bounces = enableHorizontalBounce
-                
+        
         self.view.addSubview(controllerScrollView)
         
         let controllerScrollView_constraint_H:Array = NSLayoutConstraint.constraintsWithVisualFormat("H:|[controllerScrollView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
@@ -417,7 +424,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
             
             let menuItemView : MenuItemView =  Int(index) < customMenuItems.count ? customMenuItems[Int(index)] : MenuItemView(frame: menuItemFrame)
             menuItemView.frame = menuItemFrame
-
+            
             if useMenuLikeSegmentedControl {
                 //**************************拡張*************************************
                 if menuItemMargin > 0 {
@@ -447,7 +454,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                 menuItemView.setTitleText(controller.title!)
             } else {
                 menuItemView.setTitleText("Menu \(Int(index) + 1)")
-//                menuItemView.titleLabel!.text = "Menu \(Int(index) + 1)"
+                //                menuItemView.titleLabel!.text = "Menu \(Int(index) + 1)"
             }
             
             // Add separator between menu items when using as segmented control
@@ -1026,10 +1033,10 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
     // MARK: - Move to page index
     
     /**
-    Move to page at index
-    
-    :param: index Index of the page to move to
-    */
+     Move to page at index
+     
+     :param: index Index of the page to move to
+     */
     public func moveToPage(index: Int) {
         if index >= 0 && index < controllerArray.count {
             // Update page if changed
