@@ -467,6 +467,7 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
                 }
             }
             
+            menuItemView.layoutIfNeeded()
             // Add menu item view to menu scroll view
             menuScrollView.addSubview(menuItemView)
             menuItems.append(menuItemView)
