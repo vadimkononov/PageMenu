@@ -162,6 +162,8 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         }
     }
     
+    public var menuHShiftConstraint: NSLayoutConstraint?
+
     var tapTimer : NSTimer?
     
     enum CAPSPageMenuScrollDirection : Int {
@@ -310,11 +312,12 @@ public class CAPSPageMenu: UIViewController, UIScrollViewDelegate, UIGestureReco
         
         let menuScrollView_constraint_H:Array = NSLayoutConstraint.constraintsWithVisualFormat("H:|[menuScrollView]|", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
         let menuScrollView_constraint_V:Array = NSLayoutConstraint.constraintsWithVisualFormat("V:[menuScrollView(\(menuHeight))]", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
-        let menuScrollView_constraint_Top:Array = NSLayoutConstraint.constraintsWithVisualFormat("V:|-(\(menuHShift))-[menuScrollView]", options: NSLayoutFormatOptions(rawValue: 0), metrics: nil, views: viewsDictionary)
         
+        self.menuHShiftConstraint = NSLayoutConstraint(item: menuScrollView, attribute: .Top, relatedBy: NSLayoutRelation.Equal, toItem: controllerScrollView, attribute: .Top, multiplier: 1, constant: menuHShift)
+
         self.view.addConstraints(menuScrollView_constraint_H)
         self.view.addConstraints(menuScrollView_constraint_V)
-        self.view.addConstraints(menuScrollView_constraint_Top)
+        self.view.addConstraint(self.menuHShiftConstraint!)
         
         // Add hairline to menu scroll view
         if addBottomMenuHairline {
